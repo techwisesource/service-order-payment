@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -19,7 +20,7 @@ class OrderController extends Controller
         ]);
 
         $transactionDetails = [
-            "order_id" => $order->id,
+            "order_id" => $order->id.Str::random(5),
             "gross_amount" => $course['price']
         ];
 
@@ -47,9 +48,22 @@ class OrderController extends Controller
 
         $midtransSnapUrl = $this->getMidtransSnapUrl($midtransParams);
 
-        return $midtransSnapUrl;
+        $order->snap_url =$midtransSnapUrl;
 
-        // return response()->json($order);
+        $order->metadata = [
+            "course_id" => $course["id"],
+            "course_price" => $course["price"],
+            "course_name" => $course["name"],
+            "course_thumbnail" => $course["thumbnail"],
+            "course_level" => $course["level"]
+        ];
+
+        $order->save();
+        return response()->json([
+            "status" => "success",
+            "data" => $order
+        ]);
+
     }
 
     private function getMidtransSnapUrl($params)
