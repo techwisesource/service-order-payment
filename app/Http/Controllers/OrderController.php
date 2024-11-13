@@ -18,10 +18,41 @@ class OrderController extends Controller
             'course_id' => $course['id']
         ]);
 
-        return response()->json($order);
+        $transactionDetails = [
+            "order_id" => $order->id,
+            "gross_amount" => $course['price']
+        ];
+
+        $itemDetails = [
+            [
+                "id" => $course["id"],
+                "price" => $course["price"],
+                "quantity" => 1,
+                "name" => $course["name"],
+                "brand" => "BuildwithAngga",
+                "category" => "Online course premium"
+            ]
+        ];
+
+        $customerDetails = [
+            "first_name" => $user["name"],
+            "email" => $user["email"]
+        ];
+
+        $midtransParams = [
+            "transaction_details" => $transactionDetails,
+            "item_details" => $itemDetails,
+            "customer_details" => $customerDetails
+        ];
+
+        $midtransSnapUrl = $this->getMidtransSnapUrl($midtransParams);
+
+        return $midtransSnapUrl;
+
+        // return response()->json($order);
     }
 
-    private function getlMidtransSnapUr()
+    private function getMidtransSnapUrl($params)
     {
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         \Midtrans\Config::$isProduction = (bool) env('MIDTRANS_PRODUCTION');
