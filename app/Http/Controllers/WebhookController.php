@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\PaymentLog;
 use Illuminate\Http\Request;
 
 class WebhookController extends Controller
@@ -33,6 +35,58 @@ class WebhookController extends Controller
             ], 400);
         }
 
-        return true;
+        // check orderId that sending from midtrans
+        /** REMEMBER!
+         *  format orderId+Str
+         */
+        $realOrderId = explode('-', $orderId);
+        $order = Order::find($realOrderId[0]);
+
+        if(!$order) {
+            return response()->json([
+                "status" => "error",
+                "message" => "order id not found"
+            ], 404);
+        }
+
+        // reject webhook if status order isSuccess
+        if($order->status === "success") {
+            return response()->json([
+                "status" => "error",
+                "message" => "operation not permitted"
+            ], 405);
+        }
+
+        if ($transactionStatus == 'capture') {
+            if ($fraudStatus == 'accept'){
+                    $order->status = 'success';
+            }
+        } else if ($transactionStatus == 'settlement'){
+            $order->status = 'success';
+        } else if ($transactionStatus == 'cancel' ||
+            $transactionStatus == 'deny' ||
+            $transactionStatus == 'expire'){
+                $order->status = 'failure';
+        } else if ($transactionStatus == 'pending'){
+            $order->status = 'pending';
+        }
+
+        $logsData = [
+            "status" => $transactionStatus,
+            "raw_response" => json_encode($data),
+            "order_id" => $realOrderId,
+            "payment_type" => $type
+        ];
+
+        PaymentLog::create($logsData);
+        $order->save();
+
+        if($order->status === "success")
+        {
+
+        }
+
+        return response()->json('ok');
+
     }
 }
