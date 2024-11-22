@@ -15,12 +15,12 @@ class OrderController extends Controller
         $orders = Order::query();
 
         $orders->when($userId, function($query) use ($userId) {
-            return $query->where("user_id", "=", $userId);
+            return $query->where('user_id', '=', $userId);
         });
 
         return response()->json([
-            "status" => "success",
-            "data" => $orders->get()
+            'status' => 'success',
+            'data' => $orders->get()
         ]);
     }
 
@@ -35,48 +35,48 @@ class OrderController extends Controller
         ]);
 
         $transactionDetails = [
-            "order_id" => $order->id.Str::random(5),
-            "gross_amount" => $course['price']
+            'order_id' => $order->id.'-'.Str::random(5),
+            'gross_amount' => $course['price']
         ];
 
         $itemDetails = [
             [
-                "id" => $course["id"],
-                "price" => $course["price"],
-                "quantity" => 1,
-                "name" => $course["name"],
-                "brand" => "BuildwithAngga",
-                "category" => "Online course premium"
+                'id' => $course['id'],
+                'price' => $course['price'],
+                'quantity' => 1,
+                'name' => $course['name'],
+                'brand' => 'BuildwithAngga',
+                'category' => 'Online course premium'
             ]
         ];
 
         $customerDetails = [
-            "first_name" => $user["name"],
-            "email" => $user["email"]
+            'first_name' => $user['name'],
+            'email' => $user['email']
         ];
 
         $midtransParams = [
-            "transaction_details" => $transactionDetails,
-            "item_details" => $itemDetails,
-            "customer_details" => $customerDetails
+            'transaction_details' => $transactionDetails,
+            'item_details' => $itemDetails,
+            'customer_details' => $customerDetails
         ];
 
         $midtransSnapUrl = $this->getMidtransSnapUrl($midtransParams);
 
-        $order->snap_url =$midtransSnapUrl;
+        $order->snap_url = $midtransSnapUrl;
 
         $order->metadata = [
-            "course_id" => $course["id"],
-            "course_price" => $course["price"],
-            "course_name" => $course["name"],
-            "course_thumbnail" => $course["thumbnail"],
-            "course_level" => $course["level"]
+            'course_id' => $course['id'],
+            'course_price' => $course['price'],
+            'course_name' => $course['name'],
+            'course_thumbnail' => $course['thumbnail'],
+            'course_level' => $course['level']
         ];
 
         $order->save();
         return response()->json([
-            "status" => "success",
-            "data" => $order
+            'status' => 'success',
+            'data' => $order
         ]);
 
     }

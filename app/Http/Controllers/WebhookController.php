@@ -31,17 +31,17 @@ class WebhookController extends Controller
         {
             return response()->json([
                 "status" => "error",
-                "data" => "invaid signature key"
+                "message" => "invalid signature key"
             ], 400);
         }
 
         // check orderId that sending from midtrans
         /** REMEMBER!
-         *  format orderId+Str
+         *  format orderId.'-'.Str (from file orderController)
          */
         $realOrderId = explode('-', $orderId);
         $order = Order::find($realOrderId[0]);
-
+        echo $realOrderId[0];
         if(!$order) {
             return response()->json([
                 "status" => "error",
@@ -71,21 +71,21 @@ class WebhookController extends Controller
             $order->status = 'pending';
         }
 
-        $logsData = [
+        $logData = [
             "status" => $transactionStatus,
             "raw_response" => json_encode($data),
             "order_id" => $realOrderId,
             "payment_type" => $type
         ];
 
-        PaymentLog::create($logsData);
+        PaymentLog::create($logData);
         $order->save();
 
-        if($order->status === "success")
+        if($order->status === 'success')
         {
             createPremiumAccess([
-                "user_id" => $order->user_id,
-                "course_id" => $order->course_id
+                'user_id' => $order->user_id,
+                'course_id' => $order->course_id
             ]);
         }
 
